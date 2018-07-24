@@ -1,0 +1,5 @@
+numpy>=1.12
+scipy
+pysbrl>=0.4
+flask>=1.0
+mdlp-discretization

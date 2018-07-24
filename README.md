@@ -1,2 +1,9 @@
 # rule-matrix-py
-Python package for creating rule-based explanations for classifiers.
+
+The code is under active development, APIs are redesigned.
+
+A draft version is originally hosted at:
+
+https://github.com/myaooo/x-rule
+
+Arriving soon.
