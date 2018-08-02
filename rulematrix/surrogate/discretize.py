@@ -5,8 +5,8 @@ except ImportError as e:
     raise e
 
 
-def get_discretizer(method='mdlp'):
+def get_discretizer(method='mdlp', *args, **kwargs):
     if method == 'mdlp':
-        return MDLP
+        return MDLP(*args, **kwargs)
     else:
         raise ValueError("Not supporting method %s" % method)

@@ -1,10 +1,9 @@
-import os
 import time
 import logging
 
 from rulematrix import Config
 from rulematrix.core import ModelInterface, load_model, FILE_EXTENSION
-from rulematrix.utils.io_utils import get_ext, file_exists, get_path, json2dict
+from rulematrix.server.utils import json2dict
 
 
 logger = logging.getLogger(__name__)

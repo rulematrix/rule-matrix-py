@@ -1,8 +1,12 @@
-import numpy as np
 import os
 import pickle
 from sklearn.neural_network import MLPClassifier
+from sklearn.preprocessing import OneHotEncoder
 from sklearn.pipeline import Pipeline
+from sklearn.model_selection import train_test_split
+from sklearn.datasets import load_breast_cancer, load_iris
+
+from rulematrix.surrogate import rule_surrogate
 
 
 def load_model(filename: str):
@@ -22,60 +26,89 @@ def save_model(mdl, filename):
         return pickle.dump(mdl, f)
 
 
-def train_nn(name, data, neurons=(20,), alpha=0.01, **kwargs):
-    train_x, train_y, test_x, test_y, feature_names = \
-        data['train_x'], data['train_y'], data['test_x'], data['test_y'], data['feature_names']
+def train_nn(dataset, neurons=(20,), **kwargs):
+    train_x, train_y, test_x, test_y = \
+        dataset['train_x'], dataset['train_y'], dataset['test_x'], dataset['test_y']
+    is_categorical = dataset.get('is_categorical', None)
 
-    one_hot_encoder, is_categorical = data['one_hot_encoder'], data['is_categorical']
-    nn = MLPClassifier(hidden_layer_sizes=neurons, alpha=alpha, **kwargs)
-    modl = Pipeline(['one_hot'])
+    model = MLPClassifier(hidden_layer_sizes=neurons, **kwargs)
+    if is_categorical is not None:
+        model = Pipeline([
+            ('one_hot', OneHotEncoder(categorical_features=is_categorical)),
+            ('mlp', model)
+        ])
+    model.fit(train_x, train_y)
+    train_score = model.score(train_x, train_y)
+    test_score = model.score(test_x, test_y)
+    print('Training score:', train_score)
+    print('Test score:', test_score)
     # nn = SKClassifier(model, name=name, standardize=True, one_hot_encoder=one_hot_encoder)
     # nn.train(train_x, train_y)
     # nn.evaluate(train_x, train_y, stage='train')
     # acc, loss, auc = nn.test(test_x, test_y)
-    save_model(nn, name)
 
-    return nn, acc
+    return model
 
 
-def train_surrogate(model_file, sampling_rate=5, surrogate='rule',
-                    rule_maxlen=2, min_support=0.01, eta=1, _lambda=50, iters=50000, alpha=1):
-    is_rule = surrogate == 'rule'
-    model = load_model(model_file)
-    dataset = model.name.split('-')[0]
-    data = get_dataset(dataset, split=True, discrete=is_rule, one_hot=is_rule)
-    train_x, train_y, test_x, test_y, feature_names, is_categorical = \
-        data['train_x'], data['train_y'], data['test_x'], data['test_y'], data['feature_names'], data['is_categorical']
+def train_surrogate(model, dataset, sampling_rate=2.0, **kwargs):
+    train_x, train_y, test_x, test_y = \
+        dataset['train_x'], dataset['train_y'], dataset['test_x'], dataset['test_y']
+    is_continuous = dataset.get('is_continuous', None)
+    is_categorical = dataset.get('is_categorical', None)
+    is_integer = dataset.get('is_integer', None)
+    feature_names = dataset.get('feature_names', None)
     # print(feature_names)
-    print("Original model:")
-    model.test(test_x, test_y)
-    print("Surrogate model:")
 
-    model_name = surrogate + '-surrogate-' + model.name
-    if surrogate == 'rule':
-        surrogate_model = RuleSurrogate(name=model_name, discretizer=data['discretizer'],
-                                        rule_minlen=1, rule_maxlen=rule_maxlen, min_support=min_support,
-                                        _lambda=_lambda, nchain=30, eta=eta, iters=iters, alpha=alpha)
-    elif surrogate == 'tree':
-        surrogate_model = TreeSurrogate(name=model_name, max_depth=None, min_samples_leaf=0.01)
-    else:
-        raise ValueError("Unknown surrogate type {}".format(surrogate))
-    constraints = get_constraints(train_x, is_categorical)
-    # sigmas = [0] * train_x.shape[1]
-    # print(sigmas)
-    instances = train_x
-    # print('train_y:')
-    # print(train_y)
-    # print('target_y')
-    # print(model.predict(instances))
-    if isinstance(surrogate_model, RuleSurrogate):
-        surrogate_model.surrogate(model, instances, constraints, sampling_rate, cov_factor=1.0, rediscretize=True)
-    else:
-        surrogate_model.surrogate(model, instances, constraints, sampling_rate)
+    surrogate = rule_surrogate(model.predict, train_x, sampling_rate=sampling_rate,
+                               is_continuous=is_continuous,
+                               is_categorical=is_categorical,
+                               is_integer=is_integer,
+                               feature_names=feature_names,
+                               **kwargs)
+    print('The surrogate model:')
+    print(surrogate.surrogator)
+    if isinstance(surrogate.surrogator, Pipeline):
+        print(surrogate.surrogator.named_steps['rule_list'])
+    train_fidelity = surrogate.score(train_x)
+    test_fidelity = surrogate.score(test_x)
+    print('Training fidelity:', train_fidelity)
+    print('Test fidelity:', test_fidelity)
     # surrogate_model.evaluate(train_x, train_y)
     # surrogate_model.describe(feature_names=feature_names)
-    surrogate_model.save()
-    # surrogate_model.self_test()
-    self_fidelity = surrogate_model.self_test(len(train_y) * sampling_rate * 0.25)
-    fidelity, acc = surrogate_model.test(test_x, test_y)
-    return fidelity, acc, self_fidelity, surrogate_model.n_rules
+    return surrogate
+
+
+def prepare_data(name_or_path):
+    if name_or_path == 'iris':
+        dataset = load_iris()
+    elif name_or_path == 'breast_cancer':
+        dataset = load_breast_cancer()
+    else:
+        # Try to load a pickled dataset
+        try:
+            with open(name_or_path, 'rb') as f:
+                dataset = pickle.load(f)
+        except FileNotFoundError:
+            raise ValueError('Cannot locate dataset', name_or_path)
+    if 'train_x' in dataset and 'train_y' in dataset and 'test_x' in dataset and 'test_y' in dataset:
+        return dataset
+    dataset['train_x'], dataset['test_x'], dataset['train_y'], dataset['test_y'] = \
+        train_test_split(dataset['data'], dataset['target'], test_size=0.25, random_state=42)
+
+    return dataset
+
+
+def main():
+    from argparse import ArgumentParser
+    parser = ArgumentParser()
+    parser.add_argument('--dataset', type=str, default='iris')
+    parser.add_argument('--sample_rate', type=float, default=2.0)
+
+    args = parser.parse_args()
+    dataset = prepare_data(args.dataset)
+    nn = train_nn(dataset, (20, 20))
+    train_surrogate(nn, dataset, args.sample_rate)
+
+
+if __name__ == '__main__':
+    main()
