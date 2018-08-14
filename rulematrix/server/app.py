@@ -1,7 +1,7 @@
 import numpy as np
 from flask import Flask, json
 
-from rulematrix.utils import get_path
+from rulematrix.server.utils import get_path
 
 # path = get_path('frontend/dist/static', absolute=True)
 # print("Static folder: {:s}".format(path))

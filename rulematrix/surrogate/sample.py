@@ -14,36 +14,36 @@ CATEGORICAL = 'categorical'
 data_type = {INTEGER, CONTINUOUS, CATEGORICAL}
 
 
-class IntegerConstraint(namedtuple('IntegerConstraint', ['_range'])):
+class IntegerConstraint(namedtuple('IntegerConstraint', ['range_'])):
 
     def regularize(self, arr: np.ndarray):
         arr = np.round(arr)
-        if self._range is not None:
+        if self.range_ is not None:
             assert len(arr.shape) == 1
-            arr[arr > self._range[1]] = self._range[1]
-            arr[arr < self._range[0]] = self._range[0]
+            arr[arr > self.range_[1]] = self.range_[1]
+            arr[arr < self.range_[0]] = self.range_[0]
         return arr
 
 
 CategoricalConstraint = namedtuple('CategoricalConstraint', ['categories'])
 
 
-class ContinuousConstraint(namedtuple('ContinuousConstraint', ['_range'])):
+class ContinuousConstraint(namedtuple('ContinuousConstraint', ['range_'])):
 
     def regularize(self, arr: np.ndarray):
-        if self._range is not None:
+        if self.range_ is not None:
             arr = arr.copy()
             assert len(arr.shape) == 1
-            arr[arr > self._range[1]] = self._range[1]
-            arr[arr < self._range[0]] = self._range[0]
+            arr[arr > self.range_[1]] = self.range_[1]
+            arr[arr < self.range_[0]] = self.range_[0]
         return arr
 
 
 def create_constraint(feature_type, **kwargs):
     if feature_type == INTEGER:
-        return IntegerConstraint(kwargs['_range'])
+        return IntegerConstraint(kwargs['range_'])
     elif feature_type == CONTINUOUS:
-        return ContinuousConstraint(kwargs['_range'])
+        return ContinuousConstraint(kwargs['range_'])
     elif feature_type == CATEGORICAL:
         return CategoricalConstraint(None)
     else:
@@ -57,7 +57,7 @@ def create_constraints(n_features: int, is_continuous: np.ndarray=None, is_categ
     constraints = []
     for i in range(len(is_categorical)):
         feature_type = CATEGORICAL if is_categorical[i] else CONTINUOUS if is_continuous[i] else INTEGER
-        constraints.append(create_constraint(feature_type, _range=ranges[i]))
+        constraints.append(create_constraint(feature_type, range_=ranges[i]))
     return constraints
 
 
@@ -81,10 +81,10 @@ def check_input_constraints(n_features: int, is_continuous=None, is_categorical=
         if is_continuous.shape != (n_features,):
             raise ValueError("is_continuous should be None or an array of bool mask!")
 
-    if not np.any(np.logical_and(is_categorical, np.logical_and(is_integer, is_continuous))) \
-            or np.all(np.logical_or(is_categorical, np.logical_or(is_integer, is_continuous))):
-        raise ValueError(
-            "is_integer, is_categorical, and is_continuous should be exclusive and collectively exhaustive!")
+    if np.any(np.logical_and(is_categorical, np.logical_and(is_integer, is_continuous))) \
+            or not np.all(np.logical_or(is_categorical, np.logical_or(is_integer, is_continuous))):
+        raise ValueError("is_integer, is_categorical, and is_continuous "
+                         "should be exclusive and collectively exhaustive!")
 
     return is_continuous, is_categorical, is_integer
 
@@ -146,10 +146,11 @@ def create_sampler(instances: np.ndarray, is_continuous=None, is_categorical=Non
     # Check the shape of input
     instances = np.array(instances)
     assert len(instances.shape) == 2
-    n_features = len(is_categorical)
+    n_features = instances.shape[1]
     n_samples = len(instances)
 
-    is_continuous, is_categorical, is_integer = check_input_constraints(is_continuous, is_categorical, is_integer)
+    is_continuous, is_categorical, is_integer = check_input_constraints(
+        n_features, is_continuous, is_categorical, is_integer)
     is_numeric = np.logical_or(is_integer, is_continuous)
     if ranges is None:
         ranges = [None] * n_features
