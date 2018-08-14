@@ -3,6 +3,8 @@ import os
 import pickle
 from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.datasets import load_breast_cancer, load_iris
 
 
 def load_model(filename: str):
@@ -23,12 +25,12 @@ def save_model(mdl, filename):
 
 
 def train_nn(name, data, neurons=(20,), alpha=0.01, **kwargs):
-    train_x, train_y, test_x, test_y, feature_names = \
-        data['train_x'], data['train_y'], data['test_x'], data['test_y'], data['feature_names']
+    train_x, train_y, test_x, test_y = \
+        data['train_x'], data['train_y'], data['test_x'], data['test_y']
 
-    one_hot_encoder, is_categorical = data['one_hot_encoder'], data['is_categorical']
+    is_categorical = data['is_categorical']
     nn = MLPClassifier(hidden_layer_sizes=neurons, alpha=alpha, **kwargs)
-    modl = Pipeline(['one_hot'])
+    model = Pipeline(['one_hot', ])
     # nn = SKClassifier(model, name=name, standardize=True, one_hot_encoder=one_hot_encoder)
     # nn.train(train_x, train_y)
     # nn.evaluate(train_x, train_y, stage='train')
