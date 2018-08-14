@@ -1,0 +1,3 @@
+[submodule "rulematrix/rule-matrix-js"]
+	path = rulematrix/rule-matrix-js
+	url = https://github.com/rulematrix/rule-matrix-js
