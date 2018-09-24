@@ -42,59 +42,6 @@ def tree2json(tree: Tree) -> dict:
     }
 
 
-def rl2json(rl: RuleList) -> dict:
-    supports = np.array([rule.support for rule in rl.rule_list], dtype=np.float)
-    supports /= np.sum(supports)
-    return {
-        'type': 'rule',
-        'nClasses': rl.n_classes,
-        'nFeatures': rl.n_features,
-        'rules':
-            [{
-                'conditions': [{
-                    'feature': feature,
-                    'category': category
-                } for feature, category in zip(rule.feature_indices, rule.categories)],
-                'output': rule.output,
-                'cover': np.sum(supports[i]),
-                'support': supports[i],
-                'totalSupport': np.sum(supports[i]),
-                'label': int(np.argmax(rule.output)),
-                'idx': i
-                # 'support': rule.support.tolist()
-              } for i, rule in enumerate(rl.rule_list)],
-        'supports': supports,
-        'discretizers': discretizer2json(rl.discretizer)
-        # 'activation': rl.activation,
-        # 'weights': rl.model.coefs_,
-        # 'bias': rl.model.intercepts_
-    }
-
-
-def discretizer2json(discretizer: MDLP, data=None) -> List[dict]:
-    cut_points = discretizer.cut_points_  # type: list
-    category_intervals = [None] * len(cut_points)
-    cut_points = [None if cut_point is None else cut_point for cut_point in cut_points]
-    maxs = discretizer.maxs_
-    mins = discretizer.mins_
-    # print(cut_points)
-    for i, _cut_points in enumerate(cut_points):
-        if _cut_points is None:
-            continue
-        cats = np.arange(len(_cut_points)+1)
-        intervals = [[None if low == -inf else low, None if high == inf else high]
-                     for low, high in discretizer.cat2intervals(cats, i)]
-        category_intervals[i] = intervals
-
-    return [{
-        'cutPoints': cut_points[i],
-        'intervals': category_intervals[i],
-        'max': maxs[i],
-        'min': mins[i],
-        # 'ratios': category_ratios[i]
-        } for i in range(len(cut_points))]
-
-
 def get_category_ratios(data, discretizer: MDLP, categories: List[List[str]]=None) -> List[List[float]]:
     continuous = set(discretizer.continuous_features)
     ratios = []
@@ -243,35 +190,6 @@ def construct_data(model_name, x, y, bins=20):
         'score': score
     }
     return ret
-
-
-def filter_data(is_categorical, x, y, query=None):
-    if query is None:
-        return x, y
-
-    assert len(x) == len(y)
-    satisfied = []
-    for i, _filter in enumerate(query):
-        if _filter is None:
-            continue
-        assert isinstance(_filter, list)
-        if i == len(is_categorical):
-            category = True
-            col = y
-        else:
-            col = x[:, i]
-            category = is_categorical[i]
-
-        if category:
-            sats = [col == c for c in _filter]
-            satisfied += [reduce(np.logical_or, sats)]
-        else:
-            low = _filter[0] if _filter[0] is not None else -inf
-            high = _filter[1] if _filter[1] is not None else inf
-            satisfied += [np.logical_and(low < col, col < high)]
-
-    selected = reduce(np.logical_and, satisfied, np.ones((len(y),), dtype=np.bool))
-    return x[selected], y[selected]
 
 
 @lru_cache(32)

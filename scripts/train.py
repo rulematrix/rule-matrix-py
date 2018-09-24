@@ -43,10 +43,6 @@ def train_nn(dataset, neurons=(20,), **kwargs):
     test_score = model.score(test_x, test_y)
     print('Training score:', train_score)
     print('Test score:', test_score)
-    # nn = SKClassifier(model, name=name, standardize=True, one_hot_encoder=one_hot_encoder)
-    # nn.train(train_x, train_y)
-    # nn.evaluate(train_x, train_y, stage='train')
-    # acc, loss, auc = nn.test(test_x, test_y)
 
     return model
 
@@ -64,12 +60,14 @@ def train_surrogate(model, dataset, sampling_rate=2.0, **kwargs):
                                is_continuous=is_continuous,
                                is_categorical=is_categorical,
                                is_integer=is_integer,
-                               feature_names=feature_names,
+                               rlargs={'feature_names': feature_names, 'verbose': 2},
                                **kwargs)
-    print('The surrogate model:')
-    print(surrogate.surrogator)
-    if isinstance(surrogate.surrogator, Pipeline):
-        print(surrogate.surrogator.named_steps['rule_list'])
+    student = surrogate.student
+    print('The surrogate rule list:')
+    if isinstance(student, Pipeline):
+        print(student.named_steps['rule_list'])
+    else:
+        print(student)
     train_fidelity = surrogate.score(train_x)
     test_fidelity = surrogate.score(test_x)
     print('Training fidelity:', train_fidelity)

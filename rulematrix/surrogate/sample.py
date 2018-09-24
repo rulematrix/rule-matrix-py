@@ -50,7 +50,7 @@ def create_constraint(feature_type, **kwargs):
         raise ValueError("Unknown feature_type {}".format(feature_type))
 
 
-def create_constraints(n_features: int, is_continuous: np.ndarray=None, is_categorical: np.ndarray=None,
+def create_constraints(n_features, is_continuous: np.ndarray=None, is_categorical: np.ndarray=None,
                        is_integer: np.ndarray=None, ranges=None):
     is_continuous, is_categorical, is_integer = \
         check_input_constraints(n_features, is_continuous, is_categorical, is_integer)
@@ -61,7 +61,7 @@ def create_constraints(n_features: int, is_continuous: np.ndarray=None, is_categ
     return constraints
 
 
-def check_input_constraints(n_features: int, is_continuous=None, is_categorical=None, is_integer=None):
+def check_input_constraints(n_features, is_continuous=None, is_categorical=None, is_integer=None):
     if is_integer is None:
         is_integer = np.zeros((n_features,), dtype=np.bool)
     else:

@@ -1,0 +1,231 @@
+.label rect {
+    fill-opacity: 0.8;
+}
+.hp-brush {
+    fill-opacity: 0.3;
+    stroke-opacity: 0.5;
+    stroke: #222;
+    stroke-width: 0.5;
+    fill: #888;
+}
+
+.hp-brush:hover {
+    fill-opacity: 0.6;
+}
+
+/* .hp-hists rect {
+    fill-opacity: 0.4;
+} */
+
+rect.hp-hist-active {
+    fill-opacity: 0.8;
+}
+
+/* .hp-hists>rect {
+    fill-opacity: 0.8;
+} */
+.feature-dist {
+  fill: none;
+  stroke-width: 2px;
+}
+
+.feature-dist-highlight {
+  stroke: #1f77b4;
+  stroke-width: 2px;
+  stroke-opacity: 0.5;
+}
+
+.feature-dist-area {
+  fill-opacity: 0.3;
+  stroke-width: 0;
+}
+
+.feature-dist-area-highlight {
+  /* fill: #1f77b4; */
+  fill-opacity: 0.6 !important;
+  stroke-width: 0;
+}
+
+/* .active {
+  fill-opacity: 0.8;
+} */
+rect.v-reserve {
+  /* fill: none; */
+  fill-opacity: 0.8;
+}
+
+.v-flows path {
+  fill: none;
+  stroke-opacity: 0.8;
+  stroke-linejoin: round;
+}
+
+.v-divide {
+  fill: #ddd;
+  fill-opacity: 0.2;
+  stroke: #888;
+  stroke-width: 0.8;
+}
+
+.v-divide:hover {
+  fill-opacity: 0.5;
+}
+.rule-matrix {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.matrix-condition rect {
+  /* fill-opacity: 0.4; */
+  /* stroke: #000; */
+  cursor: pointer;
+}
+
+/* .matrix-condition rect:hover {
+  fill-opacity: 0.6;
+} */
+
+.mo-outputs rect {
+  fill-opacity: 0.6;
+  /* stroke-width: 0.5; */
+  /* stroke: #444; */
+}
+
+.mo-supports rect {
+  fill-opacity: 0.8;
+  stroke-width: 0;
+  /* stroke: #444; */
+}
+
+.matrix-outputs text {
+  fill-opacity: 0.9;
+}
+
+.mc-range {
+  fill: #aaa;
+  stroke-width: 0px;
+}
+
+.mc-bg {
+  fill: #ddd;
+  stroke-width: 1px;
+}
+
+.mc-satisfied rect {
+  stroke-width: 0px;
+  fill-opacity: 0.7;
+}
+
+rect.mc-stripe {
+  mask: url(#mask-stripe);
+  fill-opacity: 1.0;
+  stroke-width: 0.5;
+  stroke: #444;
+}
+
+rect.header-bg {
+  stroke-width: 0.5;
+  stroke: #444;
+  fill: #eee;
+}
+
+.matrix-glyph-expand path {
+  fill-opacity: 0.8;
+}
+
+.matrix-glyph-expand path:hover{
+  fill-opacity: 1.0;
+}
+
+rect.mo-support-mat {
+  /* mask: url(#mask-stripe); */
+  fill-opacity: 0.8;
+  stroke-width: 0;
+}
+
+.visible {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 0.4s linear;
+}
+
+.hidden {
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0s 0.4s, opacity 0.4s linear;
+}
+
+g.row-button {
+  cursor: pointer;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+g.row-button:hover {
+  fill-opacity: 0.5;
+  stroke-opacity: 0.5;
+}
+
+text.glyph-desc {
+  font-family: 'Menlo', monospace
+}
+
+g.reset-button {
+  cursor: pointer;
+}
+
+g.reset-button:hover {
+  fill-opacity: 0.5;
+  stroke-opacity: 0.5;
+}
+
+g.cursor-ruler{
+  stroke-width: 0.5;
+  stroke: #444;
+}
+
+text.tooltip {
+  fill: #444;
+}
+
+rect.tooltip {
+  stroke: #444;
+  stroke-width: 0.5;
+  stroke-opacity: 0.6;
+  fill: #fff;
+  fill-opacity: 0.8;
+}
+
+text.header-expanded {
+  font-weight: 700;
+}
+
+path.mo-fidelity {
+  fill: #52c41a;
+}
+
+g.matrix-rule:hover>rect.matrix-bg {
+  stroke: #444;
+  fill: #d8d8d8;
+  stroke-width: 1px;
+}
+
+
+.matrix-bg {
+  fill: #fff;
+  fill-opacity: 1e-6;
+  stroke-width: 0.5px;
+  stroke: #888;
+}
+
+.matrix-bg-active {
+  fill: #fff;
+  fill-opacity: 1e-6;
+  stroke-width: 1px;
+  stroke: #666;
+}
+
+.matrix-bg-highlight {
+  /* fill: #ddd; */
+  stroke-width: 1.5px;
+  stroke: #444;
+}
