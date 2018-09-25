@@ -24,7 +24,7 @@ def filter_data(is_categorical, x, y, query=None):
         if _filter is None:
             continue
         assert isinstance(_filter, list)
-        if i == len(is_categorical):
+        if i == x.shape[1]:
             category = True
             col = y
         else:
