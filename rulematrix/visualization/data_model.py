@@ -6,6 +6,8 @@ import numpy as np
 from sklearn.metrics import confusion_matrix
 
 from ..utils import filter_data, rl2json, compute_streams, dumps
+from .utils import get_url, get_id
+from .templates import REQUIREJS_HTML, add_script_tags_to_head
 
 
 def prepare_streams(model, dataset, conditional=True, bins=20):
@@ -149,10 +151,12 @@ class Dataset:
 class DataModel:
     """The data model for visualization"""
 
-    def __init__(self, rule_surrogate, dataset):
+    def __init__(self, rule_surrogate, dataset, use_remote_resource=False, styles=None):
         self.rule_surrogate = rule_surrogate
         assert isinstance(dataset, Dataset)
         self.dataset = dataset
+        self.use_remote_resource = use_remote_resource
+        self.styles = styles
 
         self.filters = None
         self.rule_list_data = None
@@ -160,6 +164,7 @@ class DataModel:
         self.support_data = None
         self.y_pred = None
         self.jsons = None
+        self.cached_html = None
 
     @property
     def student(self):
@@ -185,14 +190,21 @@ class DataModel:
         stream_json = prepare_streams(rule_list, self.dataset)
 
         supports = compute_support_matrix(rule_list, self.dataset.data, self.dataset.target, self.y_pred)
-        self.jsons = (model_json, stream_json, supports)
+        support_json = dumps(supports)
+        self.jsons = (model_json, stream_json, support_json)
 
     def _repr_html_(self):
-        return ("""
-            <div>
-                <script type="text/javascript" src=''/>
-                <div id="demo">
-                </div>
-            </div>    
-            
-        """)
+        if self.jsons is None:
+            self.prepare_data()
+        d3_url = get_url('d3', self.use_remote_resource)
+        react_url = get_url('react', self.use_remote_resource)
+        react_dom_url = get_url('react-dom', self.use_remote_resource)
+        rulematrix_url = get_url('rulematrix', self.use_remote_resource)
+        rulematrix_css_url = get_url('rulematrix_css', self.use_remote_resource)
+        script_tag = add_script_tags_to_head.render(
+            d3_url=d3_url, react_url=react_url, react_dom_url=react_dom_url, rulematrix_url=rulematrix_url,
+            rulematrix_css_url=rulematrix_css_url)
+        model_json, stream_json, support_json = self.jsons
+        div_tag = REQUIREJS_HTML.render(id=get_id(self.jsons), model_json=model_json, stream_json=stream_json,
+                                        support_json=support_json, styles=self.styles)
+        return script_tag + div_tag
