@@ -2,16 +2,34 @@ import jinja2
 
 # RequireJS template.  If requirejs and jquery are not defined, this will
 # result in an error.  This is suitable for use within the IPython notebook.
-REQUIREJS_HTML = jinja2.Template("""
+VIS_HTML = jinja2.Template("""
 <div id={{ id }}></div>
 <script type="text/javascript">
+
+function add_css(url) {
+    var ss = document.styleSheets;
+    for (var i = 0, max = ss.length; i < max; i++) {
+        if (ss[i].href == url)
+            return;
+    }
+    var link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = url;
+
+    document.getElementsByTagName("head")[0].appendChild(link);
+}
+
+add_css("{{ rulematrix_css_url }}");
+</script>
+""")
+
+
+render_scripts = jinja2.Template("""
+<script type="text/javascript">
+
 var {{ id }}_model = {{ model_json }};
 var {{ id }}_stream = {{ stream_json }};
 var {{ id }}_support = {{ support_json }};
-
-if(typeof(window.rulematrix) === "undefined"){
-  console.error("Cannot identify rulematrix!")
-}
 
 function start() {
     var styles = {
@@ -21,8 +39,8 @@ function start() {
         rectHeight: 27,
         color: rulematrix.labelColor,
         displayEvidence: true,
-        height: 5000,
-        width: 5000,
+        height: 1000,
+        width: 1000,
         // displayFidelity: false,
         // displayFlow: false,
         zoomable: false,
@@ -34,56 +52,39 @@ function start() {
             styles[keys[j]] = user_styles[keys[j]];
         }
     {% endif %}
+    var model = new rulematrix.RuleList({{ id }}_model);
+    var streams;
+    if (rulematrix.isConditionalStreams({{ id }}_stream)) {
+        streams = rulematrix.createConditionalStreams({{ id }}_stream);
+    } else {
+        streams = rulematrix.createStreams({{ id }}_stream);
+    }
+    model.support({{ id }}_support); 
     ReactDOM.render(React.createElement('div', {
-        style: {width: 500, height: 500, overflow: 'scroll'}
+        style: {width: 800, height: 600, overflow: 'scroll'}
     }, React.createElement(rulematrix.RuleMatrixApp, {
-        model: {{ id }}_model, streams: {{ id }}_stream, support: {{ id }}_support, styles: styles, input: null
+        model: model, streams: streams, support: {{ id }}_support, styles: styles, input: null, widgets: true
     })), document.getElementById("{{ id }}"));
 }
 
-start();
-</script>
-""")
 
-
-add_script_tags_to_head = jinja2.Template("""
-<script type="text/javascript">
-function addScript(src) {
-    var s = document.createElement( "script" );
-    s.setAttribute( "src", src );
-    s.setAttribute( "type", "text/javascript" );
-    document.head.appendChild( s );
+if(typeof(window.rulematrix) === "undefined"){
+    require.config({paths: {d3: "{{ d3_url[:-3] }}", 
+                            react: "{{ react_url[:-3] }}", 
+                            "react-dom": "{{ react_dom_url[:-3] }}",
+                            rulematrix: "{{ rulematrix_url[:-3] }}"
+                            }});
+    require(["d3", "react", "react-dom"], function(d3, React, ReactDOM){
+        window.d3 = d3;
+        window.React = React;
+        window.ReactDOM = ReactDOM;
+        require(["rulematrix"], function(rulematrix) {
+            window.rulematrix = rulematrix;
+            start();
+        });
+    });
+} else {
+    start();
 }
-
-function addScripts() {
-    if (typeof(window.d3) === "undefined") {
-        addScript("{{ d3_url }}");
-    }
-    if (typeof(window.React) === "undefined") {
-        addScript("{{ react_url }}");
-    }
-    if (typeof(window.ReactDOM) === "undefined") {
-        addScript("{{ react_dom_url }}");
-    }
-    if (typeof(window.rulematrix) === "undefined") {
-        addScript("{{ rulematrix_url }}");
-    }
-}
-
-function addStylesheet() {
-    var ss = document.styleSheets;
-    for (var i = 0, max = ss.length; i < max; i++) {
-        if (ss[i].href == "{{rulematrix_css_url}}")
-            return;
-    }
-    vat r_css = document.createElement("link");
-    r_css.setAttribute("rel", "stylesheet");
-    r_css.setAttribute("type", "text/css");
-    r_css.setAttribute("href", "{{ rulematrix_css_url }}");
-
-}
-
-addScripts();
-addStylesheet();
 </script>
 """)

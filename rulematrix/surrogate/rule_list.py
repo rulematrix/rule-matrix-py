@@ -37,11 +37,20 @@ class RuleList(BayesianRuleList):
         self.category_names = compute_mdlp_all_intervals(self.discretizer)
         super(RuleList, self).fit(X_disc, y)
         
-    def predict(self, x):
+    def predict_proba(self, x):
         if self.discretizer is not None:
             x = self.discretizer.transform(x)
-        return super(RuleList, self).predict(x)
+        return super(RuleList, self).predict_proba(x)
 
+    def caught_matrix(self, x):
+        if self.discretizer is not None:
+            x = self.discretizer.transform(x)
+        return super(RuleList, self).caught_matrix(x)
+
+    def decision_path(self, x):
+        if self.discretizer is not None:
+            x = self.discretizer.transform(x)
+        return super(RuleList, self).decision_path(x)
 
 # def rule_surrogate(target, train_x, is_continuous=None, is_categorical=None, is_integer=None,
 #                    ranges=None, cov_factor=1.0, sampling_rate=2.0, seed=None, discretizer

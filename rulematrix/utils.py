@@ -55,7 +55,7 @@ def discretizer2json(discretizer):
             continue
         cats = np.arange(len(_cut_points)+1)
         intervals = [[None if low == -np.inf else low, None if high == np.inf else high]
-                     for low, high in discretizer.cat2intervals(cats, i)]
+                     for low, high in discretizer.assign_intervals(cats, i)]
         category_intervals[i] = intervals
 
     return [{
@@ -67,9 +67,15 @@ def discretizer2json(discretizer):
         } for i in range(len(cut_points))]
 
 
-def rl2json(rl):
-    supports = np.array([rule.support for rule in rl.rule_list], dtype=np.float)
-    supports /= np.sum(supports)
+def rl2json(rl, supports):
+    """
+
+    :param RuleList rl:
+    :param np.ndarray supports: shape (n_rules, n_classes, n_classes)
+    :return:
+    """
+    # supports = np.array([rule.support for rule in rl.rule_list], dtype=np.float)
+    # supports /= np.sum(supports)
     return {
         'type': 'rule',
         'nClasses': rl.n_classes,
@@ -79,7 +85,7 @@ def rl2json(rl):
                 'conditions': [{
                     'feature': feature,
                     'category': category
-                } for feature, category in zip(rule.feature_indices, rule.categories)],
+                } for feature, category in rule.clauses],
                 'output': rule.output,
                 'cover': np.sum(supports[i]),
                 'support': supports[i],
@@ -90,9 +96,6 @@ def rl2json(rl):
               } for i, rule in enumerate(rl.rule_list)],
         'supports': supports,
         'discretizers': discretizer2json(rl.discretizer)
-        # 'activation': rl.activation,
-        # 'weights': rl.model.coefs_,
-        # 'bias': rl.model.intercepts_
     }
 
 
@@ -181,7 +184,7 @@ def compute_streams(model, x, y, ranges, categories=None, conditional=True, bins
     if not conditional:
         return _compute_streams(x, idx_by_label, ranges, categories, bins)
 
-    decision_paths = model.decision_path(x, transform=True)
+    decision_paths = model.decision_path(x)
     streams = []
     # supports per rule: a bool array of shape [n_instances,]
     for support in decision_paths:
