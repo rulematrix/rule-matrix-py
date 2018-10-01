@@ -7,7 +7,7 @@ from .. import __version__
 # Use the versioned_name in case of js updates
 VERSIONED_NAME = 'rulematrix.v' + __version__
 
-STATIC_LOCAL_URL = '/nbextensions/' + VERSIONED_NAME
+STATIC_LOCAL_URL = '/nbextensions/' + VERSIONED_NAME + '/'
 STATIC_DIR = os.path.relpath(os.path.join(os.path.dirname(__file__), '../static'))
 
 _local_urls = OrderedDict([

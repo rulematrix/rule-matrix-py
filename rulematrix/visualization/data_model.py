@@ -253,4 +253,4 @@ def render(data, target, rule_surrogate=None, student=None, teacher=None, local=
         student = rule_surrogate.student
         teacher = rule_surrogate.teacher
     dataset = Dataset(data, target, feature_names, target_names, is_categorical, categories, data_name)
-    return DataModel(dataset, student=student, teacher=teacher, use_remote_resource=local)
+    return DataModel(dataset, student=student, teacher=teacher, use_remote_resource=not local)
