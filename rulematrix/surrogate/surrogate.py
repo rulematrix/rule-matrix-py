@@ -43,19 +43,20 @@ class Surrogate(object):
         """
         :param teacher:
         :param student:
-        :param np.ndarray is_continuous: (default=None)
+        :param np.ndarray or None is_continuous: default None.
             A bool mask array indicating whether each feature is continuous or not.
             If all three masks are all None, then by default all features are continuous.
-        :param np.ndarray is_categorical: (default=None)
+        :param np.ndarray or None is_categorical: default None.
             A bool mask array indicating whether each feature is categorical.
-        :param np.ndarray is_integer: (default=None)
+        :param np.ndarray or None is_integer: default None.
             A bool mask array indicating whether each feature is integer.
-        :param ranges: List[Optional[(float, float)]]
+        :param list or None ranges: List[Optional[(float, float)]]
             A list of (min, max) or None, indicating the ranges of each feature.
-        :param float cov_factor: (default 1.0)
-        :param float sampling_rate: (default 2.0)
+        :param float cov_factor: default 1.0
+        :param float sampling_rate: default 2.0
             The sampling rate, i.e., the ratio n_samples / n_training_data
-        :param int seed: The random seed for the algorithm
+        :param int or None seed: The random seed for the algorithm
+        :param boolean verbose:
         """
         self.teacher = teacher  # type: Callable
         self.student = student
