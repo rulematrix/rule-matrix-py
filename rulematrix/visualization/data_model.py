@@ -195,16 +195,6 @@ class DataModel:
         support_json = dumps(supports)
         self.jsons = (model_json, stream_json, support_json)
 
-    def _render_widgets(self):
-        from ipywidgets import FloatSlider
-        min_support_slider = FloatSlider(
-            min=0., max=0.2, step=0.01, description="Minimum Support", continuous_update=True)
-
-        min_confidence_slider = FloatSlider(
-            min=0., max=1.0, step=0.01, description="Minimum Confidence", continuous_update=True)
-
-
-
     def update_styles(self, styles):
         self.styles = styles
 
@@ -230,7 +220,7 @@ class DataModel:
         return div_tag + script_tag
 
 
-def render(data, target, rule_surrogate=None, student=None, teacher=None,
+def render(data, target, rule_surrogate=None, student=None, teacher=None, local=False,
            feature_names=None, target_names=None, is_categorical=None, categories=None, data_name=None):
     """
     Entry point to render the RuleMatrix visualization.
@@ -241,6 +231,7 @@ def render(data, target, rule_surrogate=None, student=None, teacher=None,
         Must not be `None` when `student` and `teacher` are `None`
     :param RuleList student: (optional) an instance of RuleList, will be ignored when rule_surrogate is presented
     :param teacher: (optional) The teacher function, of signature (x) -> y
+    :param boolean local: (optional) The mode of the notebook
     :param list feature_names: (optional) A List of feature names, must have len(feature_names) == data.shape[1]
     :param list target_names: (optional) A List of class names, must have len(target_names) >= np.max(target)
     :param np.ndarray is_categorical: (optional)
@@ -262,4 +253,4 @@ def render(data, target, rule_surrogate=None, student=None, teacher=None,
         student = rule_surrogate.student
         teacher = rule_surrogate.teacher
     dataset = Dataset(data, target, feature_names, target_names, is_categorical, categories, data_name)
-    return DataModel(dataset, student=student, teacher=teacher)
+    return DataModel(dataset, student=student, teacher=teacher, use_remote_resource=local)

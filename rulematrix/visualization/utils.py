@@ -2,11 +2,12 @@ import os
 from collections import OrderedDict
 import warnings
 from . import IPYTHON_VERSION
+from .. import __version__
 
+# Use the versioned_name in case of js updates
+VERSIONED_NAME = 'rulematrix.v' + __version__
 
-FRONT_VERSION = '1.0.7'
-
-STATIC_LOCAL_URL = '/nbextensions/rulematrix/'
+STATIC_LOCAL_URL = '/nbextensions/' + VERSIONED_NAME
 STATIC_DIR = os.path.relpath(os.path.join(os.path.dirname(__file__), '../static'))
 
 _local_urls = OrderedDict([
@@ -17,13 +18,15 @@ _local_urls = OrderedDict([
     ('rulematrix_css', 'rulematrix.development.css'),
 ])
 
-_remote_urls = {
-    'rulematrix': os.path.join(STATIC_DIR, 'rulematrix.js'),
-    'd3': os.path.join(STATIC_DIR, 'd3.min.js'),
-    'react': os.path.join(STATIC_DIR, 'react.production.min.js'),
-    'react-dom': os.path.join(STATIC_DIR, 'react-dom.production.min.js'),
-    'rulematrix_css': os.path.join(STATIC_DIR, 'rulematrix.css'),
+_dev_remote_urls = {
+    'rulematrix': 'https://rawgit.com/rulematrix/rule-matrix-py/master/rulematrix/static/rulematrix.development.js',
+    'd3': 'https://cdnjs.cloudflare.com/ajax/libs/d3/4.12.0/d3.js',
+    'react': 'https://cdnjs.cloudflare.com/ajax/libs/react/16.2.0/umd/react.production.min.js',
+    'react-dom': 'https://cdnjs.cloudflare.com/ajax/libs/react-dom/16.2.0/umd/react-dom.production.min.js',
+    'rulematrix_css': 'https://rawgit.com/rulematrix/rule-matrix-py/master/rulematrix/static/rulematrix.development.css',
 }
+
+_remote_urls = _dev_remote_urls
 
 
 def get_url(name, remote=False, root_url=None):
@@ -65,7 +68,7 @@ def install_static(local_path=None, target_name=None, overwrite=False):
 
     if local_path is None:
         local_path = STATIC_DIR
-        target_name = 'rulematrix'
+        target_name = VERSIONED_NAME
     if target_name is None:
         target_name = os.path.basename(local_path)
 

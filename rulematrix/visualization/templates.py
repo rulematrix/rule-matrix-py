@@ -61,9 +61,10 @@ function start() {
     }
     model.support({{ id }}_support); 
     ReactDOM.render(React.createElement('div', {
-        style: {width: 800, height: 600, overflow: 'scroll'}
+        style: {width: 960, height: 720, overflow: 'scroll'}
     }, React.createElement(rulematrix.RuleMatrixApp, {
-        model: model, streams: streams, support: {{ id }}_support, styles: styles, input: null, widgets: true
+        model: model, streams: streams, support: {{ id }}_support, styles: styles, input: null, widgets: true,
+        width: 960, height: 1000, id: "{{ id }}_svg"
     })), document.getElementById("{{ id }}"));
 }
 

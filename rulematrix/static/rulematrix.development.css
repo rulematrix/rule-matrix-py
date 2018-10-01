@@ -131,11 +131,11 @@ g.cursor-ruler{
   stroke: #444;
 }
 
-text.tooltip {
+text.rm-tooltip {
   fill: #444;
 }
 
-rect.tooltip {
+rect.rm-tooltip {
   stroke: #444;
   stroke-width: 0.5;
   stroke-opacity: 0.6;

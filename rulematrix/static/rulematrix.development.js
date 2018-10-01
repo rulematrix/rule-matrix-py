@@ -1,4 +1,4 @@
-/* rulematrix.js version 1.0.7-rc4 */
+/* rulematrix.js version 1.0.8 */
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3'), require('react'), require('react-dom')) :
     typeof define === 'function' && define.amd ? define(['exports', 'd3', 'react', 'react-dom'], factory) :
@@ -2302,12 +2302,12 @@
                 .attr('height', divideHeight);
             // Transition groups
             reserveUpdate.transition().duration(duration)
-                .attr('transform', function (d, i) { return "translate(0," + (d.y - heights[i] - dy) + ")"; });
+                .attr('transform', function (d, i) { return "translate(0," + ((d.y - heights[i] - dy) || 0) + ")"; });
             // EXIT
             reserve.exit()
                 .classed('hidden', true).classed('visible', false)
                 .transition().duration(duration)
-                .attr('transform', function (d) { return "translate(0," + (d.y - dy - 60) + ")"; });
+                .attr('transform', function (d) { return "translate(0," + ((d.y - dy - 60) || 0) + ")"; });
             // *RECTS START*
             // JOIN RECT DATA
             // console.warn(reserves);
@@ -2352,12 +2352,12 @@
             flowUpdate.select('title').text(function (d) { return d.support.join('/'); });
             // Transition groups
             flowUpdate.transition().duration(duration)
-                .attr('transform', function (d, i) { return "translate(0," + d.y + ")"; });
+                .attr('transform', function (d, i) { return "translate(0," + (d.y || 0) + ")"; });
             // EXIT
             flow.exit()
                 .classed('hidden', true).classed('visible', false)
                 .transition().duration(duration)
-                .attr('transform', function (d) { return "translate(0," + (d.y - dy - 60) + ")"; });
+                .attr('transform', function (d) { return "translate(0," + ((d.y - dy - 60) || 0) + ")"; });
             // *PATHS START*
             // JOIN PATH DATA
             var paths = flowUpdate.selectAll('path')
@@ -2860,10 +2860,10 @@
             // Update
             var updateGroup = update.select('g.mo-fidelity')
                 .datum(function (d) {
-                var fidelity = d.fidelity;
-                var color = fidelity !== undefined
+                var fidelity = d.fidelity || 0;
+                var color = fidelity
                     ? (fidelity > 0.8 ? '#52c41a' : fidelity > 0.5 ? '#faad14' : '#f5222d') : null;
-                var angle = (!isRuleGroup(d) && fidelity !== undefined) ? (Math.PI * fidelity * 2 - 1e-3) : 0;
+                var angle = (!isRuleGroup(d) && fidelity) ? (Math.PI * fidelity * 2 - 1e-3) : 0;
                 return __assign({}, d, { color: color, angle: angle });
             });
             updateGroup.select('text.mo-fidelity')
@@ -2871,7 +2871,7 @@
                 .attr('dy', fontSize * 0.4)
                 // .attr('dx', dx)
                 .text(function (d) {
-                return (!isRuleGroup(d) && d.fidelity !== undefined) ? (Math.round(d.fidelity * 100)).toFixed(0) : '';
+                return (!isRuleGroup(d) && d.fidelity) ? (Math.round(d.fidelity * 100)).toFixed(0) : '';
             })
                 .style('fill', function (d) { return d.color; });
             // Join
@@ -3134,8 +3134,8 @@
             var _a = this.params, model = _a.model, minSupport = _a.minSupport, minFidelity = _a.minFidelity, support = _a.support;
             if (this.model !== model || this.minSupport !== minSupport
                 || this.support !== support || this.minFidelity !== minFidelity) {
-                console.log(minFidelity); //tslint:disable-line
-                console.log(this.rules); //tslint:disable-line
+                // console.log(minFidelity);  //tslint:disable-line
+                // console.log(this.rules); //tslint:disable-line
                 // console.log('Updating Rules'); // tslint:disable-line
                 var rules = model.getRules();
                 var nFeatures = model.nFeatures;
@@ -3294,9 +3294,11 @@
             // Joined
             var rule = root
                 .selectAll('g.matrix-rule')
-                .data(this.rules, function (r) { return r ? "r-" + r.idx : this.id; });
+                .data(this.rules, function (r, i) {
+                return (r ? "r-" + r.idx : this.getAttribute('data-id')) || String(i);
+            });
             // Enter
-            var ruleEnter = rule.enter().append('g').attr('id', function (d) { return "r-" + d.idx; })
+            var ruleEnter = rule.enter().append('g').attr('data-id', function (d) { return "r-" + d.idx; })
                 .attr('class', 'matrix-rule')
                 .attr('transform', function (d) { return d.parent ? "translate(" + d.x + "," + (d.y - 40) + ")" : 'translate(0,0)'; });
             // Update
@@ -3313,7 +3315,7 @@
                 .transition()
                 .duration(duration)
                 .attr('transform', function (d, i, nodes) {
-                return "translate(0," + collapseYs.get(nodes[i].id) + ")";
+                return "translate(0," + (collapseYs.get(nodes[i].id) || 0) + ")";
             }).transition().delay(300)
                 .attr('display', 'none');
             var painter = this.rowPainter;
@@ -3404,15 +3406,15 @@
             return this;
         };
         RuleMatrixPainter.prototype.renderToolTip = function (cursorFollow) {
-            var tooltipEnter = cursorFollow.selectAll('g.tooltip')
+            var tooltipEnter = cursorFollow.selectAll('g.rm-tooltip')
                 .data(['tooltip']).enter()
-                .append('g').attr('class', 'tooltip')
+                .append('g').attr('class', 'rm-tooltip')
                 .attr('transform', "translate(4,-6)");
-            tooltipEnter.append('rect').attr('class', 'tooltip');
+            tooltipEnter.append('rect').attr('class', 'rm-tooltip');
             // .attr('stroke', '#444').attr('stroke-opacity', 0.4);
-            tooltipEnter.append('text').attr('class', 'tooltip')
+            tooltipEnter.append('text').attr('class', 'rm-tooltip')
                 .attr('text-anchor', 'start').attr('dx', 5).attr('dy', -2);
-            var tooltip = cursorFollow.select('g.tooltip');
+            var tooltip = cursorFollow.select('g.rm-tooltip');
             return tooltip;
         };
         RuleMatrixPainter.prototype.renderLine = function (cursorFollow) {
@@ -3521,7 +3523,7 @@
         RuleMatrix.prototype.painterUpdate = function () {
             var _a = this.props, streams = _a.streams, model = _a.model, x0 = _a.x0, y0 = _a.y0, rectWidth = _a.rectWidth, rectHeight = _a.rectHeight, flowWidth = _a.flowWidth, evidenceWidth = _a.evidenceWidth;
             var _b = this.props, minSupport = _b.minSupport, minFidelity = _b.minFidelity, support = _b.support, input = _b.input, color = _b.color, displayFlow = _b.displayFlow, displayEvidence = _b.displayEvidence, zoomable = _b.zoomable;
-            console.log('updating matrix'); // tslint:disable-line
+            // console.log('updating matrix'); // tslint:disable-line
             this.state.painter.update({
                 // dataset,
                 streams: streams,
