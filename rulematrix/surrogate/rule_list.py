@@ -1,3 +1,4 @@
+import numpy as np
 from pysbrl import BayesianRuleList
 from rulematrix.surrogate.discretize import get_discretizer, compute_mdlp_all_intervals
 
@@ -31,18 +32,37 @@ class RuleList(BayesianRuleList):
             raise ValueError('discretizer should have method transform!')
 
     def fit(self, X, y):
+        """
+        Fit the rule list on given training data
+        :param X: 2D array
+        :param y: 1D integer array
+        :return: self
+        """
         self._validate_discretizer()
         self.discretizer.fit(X, y)
         X_disc = self.discretizer.transform(X)
         self.category_names = compute_mdlp_all_intervals(self.discretizer)
         super(RuleList, self).fit(X_disc, y)
+        return self
         
     def predict_proba(self, x):
+        """
+        Give the probability output (prediction) on the given data
+        :param x:
+        :return:
+        """
         if self.discretizer is not None:
             x = self.discretizer.transform(x)
         return super(RuleList, self).predict_proba(x)
 
     def caught_matrix(self, x):
+        """
+        compute the caught matrix of x
+        Each rule has an array of bools, showing whether each instances is caught by this rule
+        :param np.ndarray x: 2D array (n_instances, n_features) should be categorical data, must be of type int
+        :return:
+            a bool np.ndarray of shape (n_rules, n_instances)
+        """
         if self.discretizer is not None:
             x = self.discretizer.transform(x)
         return super(RuleList, self).caught_matrix(x)
@@ -52,24 +72,19 @@ class RuleList(BayesianRuleList):
             x = self.discretizer.transform(x)
         return super(RuleList, self).decision_path(x)
 
-# def rule_surrogate(target, train_x, is_continuous=None, is_categorical=None, is_integer=None,
-#                    ranges=None, cov_factor=1.0, sampling_rate=2.0, seed=None, discretizer
-#                    **kwargs):
-
-#     if is_continuous is None:
-#         # then we check if all the input are already discretized
-#         try:
-#             train_x = train_x.as_type(np.int, casting='safe')
-#             student = BayesianRuleList()
-#         except TypeError:
-#             # We failed the casting, create a default discretizer for continuous features
-#             if is_categorical is not None:
-#                 numeric_features = np.logircal_not(is_categorical)
-#             continuous_features = is_continuous
-
-#     student = create_student_model(discretizer, **kwargs)
-#     surrogator = Surrogate(target, student, is_continuous, is_categorical, is_integer,
-#                            ranges, cov_factor, sampling_rate, seed)
-#     # Fit the distribution estimation of training data
-#     surrogator.fit(train_x)
-#     return surrogator
+    def explain(self, x, trace_all=False):
+        """
+        Explain the prediction of a given input using rule(s)
+        :param x: 1D array of a single input instance
+        :param bool trace_all:
+        :return:
+            if `trace_all`, then all queried rules would be returned,
+            else a single rule that captured the input would be returned
+        """
+        x = x.reshape(1, -1)
+        assert x.shape[1] == self.n_features
+        decision_path = self.decision_path(x)
+        queried_rules = np.arange(self.n_rules)[decision_path]
+        if trace_all:
+            return [self.rule_list[i] for i in queried_rules]
+        return self.rule_list[queried_rules[-1]]

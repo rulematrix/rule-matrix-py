@@ -123,26 +123,9 @@ class Surrogate(object):
             print('Warning: y will not be used in the score function!')
         return fidelity(self.teacher, self.student, X)
 
-    # def fidelity(self, X):
-    #     return fidelity(self.teacher, self.student, X)
-
     def self_test(self, n_sample=200):
         x = self.data_distribution(n_sample)
         return fidelity(self.teacher, self.student, x)
-
-    # def evaluate(self, x, y, stage='train'):
-    #     prefix = 'Training'
-    #
-    #     y_pred = self.predict(x)
-    #     fidelity = self.fidelity(x)
-    #     score = self.score(y, y_pred)
-    #     if stage == 'test':
-    #         prefix = 'Testing'
-    #         self.train_fidelity = fidelity
-    #     else:
-    #         self.test_fidelity = fidelity
-    #     print(prefix + " fidelity: {:.5f}; score: {:.5f}".format(fidelity, score))
-    #     return fidelity, score
 
 
 def rule_surrogate(target, train_x, is_continuous=None, is_categorical=None, is_integer=None,

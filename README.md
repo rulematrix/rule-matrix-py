@@ -6,7 +6,25 @@ Check the paper "RuleMatrix: Visualizing and Understanding Classifiers with Rule
 The preprint pdf can be found on [Arxiv](https://arxiv.org/abs/1807.06228). 
 The [published version](https://ieeexplore.ieee.org/document/8440085) can be found on IEEE Explorer.
 
-# Demo
+Basically, RuleMatrix can be used to extract a human-readable rule list that approximate a given classifier. 
+For example, we have a neural network trained on the Iris dataset to classify iris plants to three different classes ['setosa', 'versicolor', 'virginica'].
+A rule list surrogate of the neural network could be (prob is the probability of the three different classes):
+
+```
+     IF (petal length (cm) in (-inf, 2.9799)) THEN prob: [0.9375, 0.0500, 0.0125]
+
+ELSE IF (petal width (cm) in (2.0558, inf)) THEN prob: [0.0200, 0.0200, 0.9600]
+
+ELSE IF (petal length (cm) in (2.9799, 4.7345)) THEN prob: [0.0164, 0.9508, 0.0328]
+
+ELSE DEFAULT prob: [0.0222, 0.1778, 0.8000]
+```
+
+
+# Visualization Demo
+
+Besides the basic rule surrogate algorithm, 
+RuleMatrix also provides a visualization toolkit to help you analyze the rules, and the relation between the rules and the original model.
 
 * Example RuleMatrix Visualization:
 
