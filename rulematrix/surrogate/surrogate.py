@@ -84,10 +84,15 @@ class Surrogate(object):
         if not hasattr(self.student, 'predict'):
             raise ValueError("The student model should has predict function")
 
-        # self.evaluate(train_x, train_y, stage='train')t
-        # self.self_test(int(n_samples * 0.2), cache=cache)
-
     def fit_distribution(self, X):
+        """
+        Fit the distribution of the training data.
+        Subclasses can override this function to support more powerful distribution estimation methods.
+        An idea would be using GAN to fit a more powerful distribution on image dataset
+        and use it to sample training data for rule list
+        :param X:
+        :return:
+        """
         self.data_distribution = create_sampler(X, self.is_continuous, self.is_categorical, self.is_integer,
                                                 self.ranges, self.cov_factor, seed=self.seed)
         self.n_instances = len(X)
@@ -124,8 +129,13 @@ class Surrogate(object):
         return fidelity(self.teacher, self.student, X)
 
     def self_test(self, n_sample=200):
-        x = self.data_distribution(n_sample)
-        return fidelity(self.teacher, self.student, x)
+        """
+        Use data randomly sampled from the estimated distribution to test the surrogate model.
+        :param n_sample: number of test data to sample
+        :return: score (fidelity) on the test ata
+        """
+        x = self.sample(n_sample)
+        return self.score(x)
 
 
 def rule_surrogate(target, train_x, is_continuous=None, is_categorical=None, is_integer=None,
